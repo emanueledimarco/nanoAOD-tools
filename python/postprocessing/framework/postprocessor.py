@@ -2,25 +2,27 @@
 import os
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-from CMGTools.MonoXAnalysis.postprocessing.framework.branchselection import BranchSelection
-from CMGTools.MonoXAnalysis.postprocessing.framework.datamodel import InputTree
-from CMGTools.MonoXAnalysis.postprocessing.framework.eventloop import eventLoop
-from CMGTools.MonoXAnalysis.postprocessing.framework.output import FriendOutput, FullOutput
-from CMGTools.MonoXAnalysis.postprocessing.framework.preskimming import preSkim
 
 class PostProcessor :
-    def __init__(self,outputDir,inputFiles,cut=None,branchsel=None,modules=[],compression="LZMA:9",friend=False,postfix=None,json=None,noOut=False,justcount=False,eventRange=None):
+    def __init__(self,outputDir,inputFiles,cut=None,branchsel=None,modules=[],compression="LZMA:9",friend=False,postfix=None,
+		 jsonInput=None,noOut=False,justcount=False,provenance=False,haddFileName=None,fwkJobReport=False,eventRange=None):
 	self.outputDir=outputDir
 	self.inputFiles=inputFiles
 	self.cut=cut
 	self.modules=modules
 	self.compression=compression
 	self.postfix=postfix
-	self.json=json
+	self.json=jsonInput
 	self.noOut=noOut
 	self.friend=friend
 	self.justcount=justcount
         self.eventRange=eventRange
+	self.provenance=provenance
+	self.jobReport = JobReport() if fwkJobReport else None
+	self.haddFileName=haddFileName
+	if self.jobReport and not self.haddFileName :
+		print "Because you requested a FJR we assume you want the final hadd. No name specified for the output file, will use tree.root"
+		self.haddFileName="tree.root"
  	self.branchsel = BranchSelection(branchsel) if branchsel else None 
     def run(self) :
     	if not self.noOut:
@@ -46,7 +48,7 @@ class PostProcessor :
 	for m in self.modules: m.beginJob()
 
 	fullClone = (len(self.modules) == 0)
-
+	outFileNames=[]
 	for fname in self.inputFiles:
 	    # open input file
             fetchedfile = None
@@ -77,8 +79,8 @@ class PostProcessor :
                 inFile = ROOT.TFile.Open(fname)
 
 	    #get input tree
-	    inTree = inFile.Get("tree")
-
+	    inTree = inFile.Get("Events")
+	    
 	    # pre-skimming
 	    elist,jsonFilter = preSkim(inTree, self.json, self.cut)
 	    if self.justcount:
@@ -96,13 +98,14 @@ class PostProcessor :
 	    # prepare output file
 	    outFileName = os.path.join(self.outputDir, os.path.basename(fname).replace(".root",outpostfix+".root"))
 	    outFile = ROOT.TFile.Open(outFileName, "RECREATE", "", compressionLevel)
+	    outFileNames.append(outFileName)
 	    if compressionLevel: outFile.SetCompressionAlgorithm(compressionAlgo)
 
 	    # prepare output tree
 	    if self.friend:
 		outTree = FriendOutput(inFile, inTree, outFile)
 	    else:
-		outTree = FullOutput(inFile, inTree, outFile, branchSelection = self.branchsel, fullClone = fullClone, jsonFilter = jsonFilter)
+		outTree = FullOutput(inFile, inTree, outFile, branchSelection = self.branchsel, fullClone = fullClone, jsonFilter = jsonFilter,provenance=self.provenance)
 
 	    # process events, if needed
 	    if not fullClone:
@@ -119,4 +122,13 @@ class PostProcessor :
                 print 'Cleaning up: removing %s'%fetchedfile
                 os.system("rm %s"%fetchedfile)
 
+	    if self.jobReport:
+		self.jobReport.addInputFile(fname,nall)
+
 	for m in self.modules: m.endJob()
+
+	if self.haddFileName :
+		os.system("./haddnano.py %s %s" %(self.haddFileName," ".join(outFileNames))) #FIXME: remove "./" once haddnano.py is distributed with cms releases
+	if self.jobReport :
+		self.jobReport.addOutputFile(self.haddFileName)
+		self.jobReport.save()
