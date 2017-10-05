@@ -63,7 +63,32 @@ class PostProcessor :
 	for fname in self.inputFiles:
 
 	    # open input file
-	    inFile = ROOT.TFile.Open(fname)
+            fetchedfile = None
+            if 'LSB_JOBID' in os.environ or 'LSF_JOBID' in os.environ:
+                if fname.startswith("root://"):
+                    try:
+                        tmpdir = os.environ['TMPDIR'] if 'TMPDIR' in os.environ else "/tmp"
+                        tmpfile =  "%s/%s" % (tmpdir, os.path.basename(fname))
+                        print "xrdcp %s %s" % (fname, tmpfile)
+                        os.system("xrdcp %s %s" % (fname, tmpfile))
+                        if os.path.exists(tmpfile):
+                            fname = tmpfile
+                            fetchedfile = fname
+                            print "success :-)"
+                    except:
+                        pass
+                inFile = ROOT.TFile.Open(fname)
+            elif "root://" in fname:
+                ROOT.gEnv.SetValue("TFile.AsyncReading", 1);
+                ROOT.gEnv.SetValue("XNet.Debug", 0); # suppress output about opening connections
+                ROOT.gEnv.SetValue("XrdClientDebug.kUSERDEBUG", 0); # suppress output about opening connections
+                inFile   = ROOT.TXNetFile(fname+"?readaheadsz=65535&DebugLevel=0")
+                os.environ["XRD_DEBUGLEVEL"]="0"
+                os.environ["XRD_DebugLevel"]="0"
+                os.environ["DEBUGLEVEL"]="0"
+                os.environ["DebugLevel"]="0"
+            else:
+                inFile = ROOT.TFile.Open(fname)
 
 	    #get input tree
 	    inTree = inFile.Get("Events")
@@ -81,6 +106,7 @@ class PostProcessor :
 		if elist: inTree.SetEntryList(elist)
 	    else:
 		# initialize reader
+                if elist: inTree.SetEntryList(elist)
 		inTree = InputTree(inTree, elist) 
 
 	    # prepare output file
