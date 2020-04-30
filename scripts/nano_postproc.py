@@ -5,6 +5,8 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
+DEFAULT_MODULES = [("PhysicsTools.NanoAODTools.postprocessing.modules.gen.genFriendProducer", "genFriends")]
+
 if __name__ == "__main__":
     from optparse import OptionParser
     parser = OptionParser(usage="%prog [options] outputDir inputFiles")
@@ -24,7 +26,9 @@ if __name__ == "__main__":
     parser.add_option("--justcount",   dest="justcount", default=False, action="store_true",  help="Just report the number of selected events") 
     parser.add_option("-I", "--import", dest="imports",  type="string", default=[], action="append", nargs=2, help="Import modules (python package, comma-separated list of ");
     parser.add_option("-z", "--compression",  dest="compression", type="string", default=("LZMA:9"), help="Compression: none, or (algo):(level) ")
-
+    parser.add_option("-m", "--modules", dest="modules",  type="string", default=[], action="append", help="Run only these modules among the imported ones");
+    parser.add_option(      "--moduleList", dest="moduleList",  type="string", default='DEFAULT_MODULES', help="use this list as a starting point for the modules to run [%default]")
+    
     (options, args) = parser.parse_args()
 
     if options.friend:
@@ -35,14 +39,18 @@ if __name__ == "__main__":
         sys.exit(1)
     outdir = args[0]; args = args[1:]
 
+    print ('I\'m using the following list of modules',options.moduleList)
+    imports = globals()[options.moduleList] + options.imports
+    
     modules = []
-    for mod, names in options.imports: 
+    for mod, names in imports: 
         import_module(mod)
         obj = sys.modules[mod]
         selnames = names.split(",")
         mods = dir(obj)
         for name in selnames:
             if name in mods:
+                if len(options.modules) and name not in options.modules: continue
                 print("Loading %s from %s " % (name, mod))
                 if type(getattr(obj,name)) == list:
                     for mod in getattr(obj,name):
