@@ -96,7 +96,7 @@ class Collection:
         self._cache = {}
     def __getitem__(self,index):
         if type(index) == int and index in self._cache: return self._cache[index]
-        if index >= self._len: raise IndexError, "Invalid index %r (len is %r) at %s" % (index,self._len,self._prefix)
+        if index >= self._len: raise IndexError("Invalid index %r (len is %r) at %s" % (index,self._len,self._prefix))
         ret = Object(self._event,self._prefix,index=index)
         if type(index) == int: self._cache[index] = ret
         return ret
