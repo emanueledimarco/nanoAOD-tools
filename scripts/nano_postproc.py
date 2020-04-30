@@ -31,8 +31,8 @@ if __name__ == "__main__":
         if options.cut or options.json: raise RuntimeError("Can't apply JSON or cut selection when producing friends")
 
     if len(args) < 2 :
-	 parser.print_help()
-         sys.exit(1)
+        parser.print_help()
+        sys.exit(1)
     outdir = args[0]; args = args[1:]
 
     modules = []
@@ -43,7 +43,7 @@ if __name__ == "__main__":
         mods = dir(obj)
         for name in selnames:
             if name in mods:
-                print "Loading %s from %s " % (name, mod)
+                print("Loading %s from %s " % (name, mod))
                 if type(getattr(obj,name)) == list:
                     for mod in getattr(obj,name):
                         modules.append( mod())

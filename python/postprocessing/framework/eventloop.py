@@ -6,8 +6,8 @@ import ROOT
 class Module(object):
     def __init__(self):
         self.writeHistFile=False
-    def beginJob(self,histFile=None,histDirName=None):
-        if histFile != None and histDirName != None:
+    def beginJob(self,histFile=ROOT.nullptr,histDirName=ROOT.nullptr):
+        if histFile != ROOT.nullptr and histDirName != ROOT.nullptr:
             self.writeHistFile=True
             prevdir = ROOT.gDirectory
             self.histFile = histFile
@@ -16,13 +16,13 @@ class Module(object):
             prevdir.cd()
             self.objs = []
     def endJob(self):
-        if hasattr(self, 'objs') and self.objs != None:
+        if hasattr(self, 'objs') and self.objs != ROOT.nullptr:
             prevdir = ROOT.gDirectory
             self.dir.cd()
             for obj in self.objs:
                 obj.Write()
             prevdir.cd()
-            if hasattr(self, 'histFile') and self.histFile != None : 
+            if hasattr(self, 'histFile') and self.histFile != ROOT.nullptr : 
                 self.histFile.Close()
                 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -43,7 +43,7 @@ class Module(object):
             self.objs.append( getattr( self, obj.GetName() + '_' + name ) )
         setattr( self, obj.GetName(), objlist )
 
-def eventLoop(modules, inputFile, outputFile, inputTree, wrappedOutputTree, maxEvents=-1, eventRange=None, progress=(10000,sys.stdout), filterOutput=True): 
+def eventLoop(modules, inputFile, outputFile, inputTree, wrappedOutputTree, maxEvents=-1, eventRange=ROOT.nullptr, progress=(10000,sys.stdout), filterOutput=True): 
     for m in modules: 
         m.beginFile(inputFile, outputFile, inputTree, wrappedOutputTree)
 
@@ -52,7 +52,7 @@ def eventLoop(modules, inputFile, outputFile, inputTree, wrappedOutputTree, maxE
     if eventRange: entries = len(eventRange)
     if maxEvents > 0: entries = min(entries, maxEvents)
 
-    for ie,i in enumerate(xrange(entries) if eventRange == None else eventRange):
+    for ie,i in enumerate(range(entries) if eventRange == ROOT.nullptr else eventRange):
         if maxEvents > 0 and ie >= maxEvents: break
         e = Event(inputTree,i)
         clearExtraBranches(inputTree)
@@ -63,7 +63,7 @@ def eventLoop(modules, inputFile, outputFile, inputTree, wrappedOutputTree, maxE
             if not ret: break
         if ret:
             acceptedEvents += 1
-        if (ret or not filterOutput) and wrappedOutputTree != None: 
+        if (ret or not filterOutput) and wrappedOutputTree != ROOT.nullptr: 
             wrappedOutputTree.fill()
         if progress:
             if ie > 0 and ie % progress[0] == 0:
