@@ -53,9 +53,9 @@ class PostProcessor :
             return localfile, False
         try:
             if verbose: print("Filename %s is remote, will do a copy to local path %s " % (fname,localfile)) 
-            start = time.perf_counter()
+            start = time.clock()
             subprocess.check_output(["xrdcp","-f","-N",fname,localfile])
-            if verbose: print("Time used for transferring the file locally: %s s" % (time.perf_counter() - start)) 
+            if verbose: print("Time used for transferring the file locally: %s s" % (time.clock() - start)) 
             return localfile, (not self.longTermCache)
         except:
             if verbose: print("Error: could not save file locally, will run from remote") 
@@ -108,7 +108,7 @@ class PostProcessor :
 
         fullClone = (len(self.modules) == 0)
         outFileNames=[]
-        t0 = time.perf_counter()
+        t0 = time.clock()
         totEntriesRead=0
         for fname in self.inputFiles:
             ffnames = []
@@ -202,7 +202,7 @@ class PostProcessor :
                 
         for m in self.modules: m.endJob()
         
-        print(totEntriesRead/(time.perf_counter()-t0), "Hz")
+        print(totEntriesRead/(time.clock()-t0), "Hz")
 
 
         if self.haddFileName :
