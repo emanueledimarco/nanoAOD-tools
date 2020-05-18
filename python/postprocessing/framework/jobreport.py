@@ -3,7 +3,7 @@ import re
 #import lxml.etree.ElementTree as ET
 class JobReport :
        def __init__(self):
-	   self.fjr = ET.Element("FrameworkJobReport")
+           self.fjr = ET.Element("FrameworkJobReport")
            self.readbranches = ET.SubElement(self.fjr, "ReadBranches")
            self.performancereport = ET.SubElement(self.fjr, "PerformanceReport")
            self.performancesummary = ET.SubElement(self.performancereport, "PerformanceSummary", Metric="StorageStatistics")
@@ -26,19 +26,19 @@ class JobReport :
 
        def addInputFile(self,filename,eventsRead=1,runsAndLumis={"1":[1]}) :
            infile = ET.SubElement(self.fjr, "InputFile")
-	   ET.SubElement(infile,"LFN").text=re.sub(r".*?(/store/.*\.root)(\?.*)?",r"\1", filename) 
-	   ET.SubElement(infile,"PFN").text=""
-	   ET.SubElement(infile,"Catalog").text=""
-	   ET.SubElement(infile,"InputType").text="primaryFiles"
-	   ET.SubElement(infile,"ModuleLabel").text="source"
-	   ET.SubElement(infile,"InputSourceClass").text="PoolSource"
-	   ET.SubElement(infile,"GUID").text=""
-	   ET.SubElement(infile,"EventsRead").text="%s"%eventsRead
-	   runs=ET.SubElement(infile,"Runs")
-	   for r,ls in runsAndLumis.iteritems() :
-	   	run=ET.SubElement(runs,"Run",ID="%s"%r)
-	   	for l in ls :
-		   ET.SubElement(run,"LumiSection",ID="%s"%l)
+           ET.SubElement(infile,"LFN").text=re.sub(r".*?(/store/.*\.root)(\?.*)?",r"\1", filename) 
+           ET.SubElement(infile,"PFN").text=""
+           ET.SubElement(infile,"Catalog").text=""
+           ET.SubElement(infile,"InputType").text="primaryFiles"
+           ET.SubElement(infile,"ModuleLabel").text="source"
+           ET.SubElement(infile,"InputSourceClass").text="PoolSource"
+           ET.SubElement(infile,"GUID").text=""
+           ET.SubElement(infile,"EventsRead").text="%s"%eventsRead
+           runs=ET.SubElement(infile,"Runs")
+           for r,ls in runsAndLumis.items() :
+                   run=ET.SubElement(runs,"Run",ID="%s"%r)
+                   for l in ls :
+                          ET.SubElement(run,"LumiSection",ID="%s"%l)
 
        def addOutputFile(self,filename,events=1,runsAndLumis={"1":[1]}):
            infile = ET.SubElement(self.fjr, "File")
@@ -52,12 +52,12 @@ class JobReport :
            ET.SubElement(infile,"BranchHash").text="dc90308e392b2fa1e0eff46acbfa24bc"
            ET.SubElement(infile,"TotalEvents").text="%s"%events
            runs=ET.SubElement(infile,"Runs")
-           for r,ls in runsAndLumis.iteritems() :
+           for r,ls in runsAndLumis.items() :
                 run=ET.SubElement(runs,"Run",ID="%s"%r)
                 for l in ls :
                    ET.SubElement(run,"LumiSection",ID="%s"%l)
-		
+                
        def save(self,filename="FrameworkJobReport.xml"):
-	    tree = ET.ElementTree(self.fjr)
-	    tree.write(filename) #, pretty_print=True)
-	    pass
+            tree = ET.ElementTree(self.fjr)
+            tree.write(filename) #, pretty_print=True)
+            pass

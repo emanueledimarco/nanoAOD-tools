@@ -10,7 +10,7 @@ def root2map(tree):
     tree.SetBranchStatus("run",1)
     tree.SetBranchStatus("luminosityBlock",1)
     jsonind = {}
-    for e in xrange(tree.GetEntries()):
+    for e in range(tree.GetEntries()):
         tree.GetEntry(e)
         run,lumi = tree.run, tree.luminosityBlock
         if run not in jsonind:
@@ -22,9 +22,9 @@ def root2map(tree):
         jsonind[run] =  list(set(jsonind[run]))
 
     nruns = len(jsonind)
-    nlumis = sum(len(v) for v in jsonind.itervalues())
+    nlumis = sum(len(v) for v in jsonind.values())
     jsonmap = {}
-    for r,lumis in jsonind.iteritems():
+    for r,lumis in jsonind.items():
         if len(lumis) == 0: continue # shouldn't happen
         lumis.sort()
         ranges = [ [ lumis[0], lumis[0] ] ]
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     parser.add_option("-o", "--out", dest="outputFile", default="lumiSummary.json", help="Name of the output file")
     (options,args) = parser.parse_args()
     if len(args)==0:
-        print 'provide at least one input file in argument. Use -h to display help'
+        print('provide at least one input file in argument. Use -h to display help')
         exit()
     chain = ROOT.TChain(options.treeName)
     for a in args: chain.Add(a)
@@ -51,4 +51,4 @@ if __name__ == '__main__':
     if summary:
         jmap, runs, lumis = summary
         json.dump(jmap,open(options.outputFile,'w'))
-        print "Saved %s (%d runs, %d lumis)" % (options.outputFile, runs, lumis)
+        print("Saved %s (%d runs, %d lumis)" % (options.outputFile, runs, lumis))

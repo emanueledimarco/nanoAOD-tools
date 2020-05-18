@@ -6,31 +6,31 @@ import re
 import PSet
 
 def inputFiles():
-   print "ARGV:",sys.argv
+   print("ARGV:",sys.argv)
    JobNumber=sys.argv[1]
    crabFiles=PSet.process.source.fileNames
-   print crabFiles
+   print(crabFiles)
    firstInput = crabFiles[0]
    tested=False
    forceaaa=False
-   print "--------------- using edmFileUtil to convert PFN to LFN -------------------------"
-   for i in xrange(0,len(crabFiles)) :
+   print("--------------- using edmFileUtil to convert PFN to LFN -------------------------")
+   for i in range(0,len(crabFiles)) :
      if os.getenv("GLIDECLIENT_Group","") != "overflow" and  os.getenv("GLIDECLIENT_Group","") != "overflow_conservative" and not forceaaa:
-       print "Data is local"
+       print("Data is local")
        pfn=os.popen("edmFileUtil -d %s"%(crabFiles[i])).read()
        pfn=re.sub("\n","",pfn)
-       print crabFiles[i],"->",pfn
+       print(crabFiles[i],"->",pfn)
        if not tested:
-         print "Testing file open"
+         print("Testing file open")
          import ROOT
          testfile=ROOT.TFile.Open(pfn)
          if testfile and testfile.IsOpen() :
-            print "Test OK"
+            print("Test OK")
             crabFiles[i]=pfn
             testfile.Close()
             #tested=True
          else :
-            print "Test open failed, forcing AAA"
+            print("Test open failed, forcing AAA")
             crabFiles[i]="root://cms-xrd-global.cern.ch/"+crabFiles[i]
             forceaaa=True
        else :
@@ -38,7 +38,7 @@ def inputFiles():
 
 
      else:
-       print "Data is not local, using AAA/xrootd"
+       print("Data is not local, using AAA/xrootd")
        crabFiles[i]="root://cms-xrd-global.cern.ch/"+crabFiles[i]
    return crabFiles
 
@@ -59,7 +59,7 @@ def runsAndLumis():
              if rstart not in runsAndLumis:
               runsAndLumis[rstart]=[]
              runsAndLumis[rstart].append([int(lstart),int(lstop)])
-	 print "Runs and Lumis",runsAndLumis
+	 print("Runs and Lumis",runsAndLumis)
          return runsAndLumis 
     return None
 
